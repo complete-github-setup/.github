@@ -1,0 +1,29 @@
+name: release github action
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: update action to next ${{ github.event.inputs.version }} version
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: "0"
+      - name: setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+      - name: bump version
+        run: |
+          NEW_TAG=$(npm version ${{ github.event.inputs.version }})
+          git push -f origin
+          git push origin :refs/tags/${NEW_TAG:0:2}
+          git tag -f ${NEW_TAG:0:2}
+          git push --tags
